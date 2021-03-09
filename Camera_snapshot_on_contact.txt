@@ -7,7 +7,7 @@ blueprint:
   input:
     contact_sensor:
       name: Contact sensor
-      description: The sensor wich triggers the snapshot creation
+      description: The sensor which triggers the snapshot creation
       selector:
           entity:
             domain: binary_sensor
