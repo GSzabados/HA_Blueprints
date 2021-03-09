@@ -62,8 +62,8 @@ trigger:
   to: "false"
 
 variables:
-  motion_sensor: !input contact_sensor
-  motion_sensor_name: "{{ states[motion_sensor].name }}"
+  contact_sensor: !input contact_sensor
+  contact_sensor_name: "{{ states[contact_sensor].name }}"
   camera: !input camera
   notify_device: !input notify_device
   is_ios: !input is_ios
