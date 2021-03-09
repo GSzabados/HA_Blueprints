@@ -1,17 +1,17 @@
 blueprint:
-  name: Send a camera snapshot when motion is detected
+  name: Send a camera snapshot when contact opens.
   description: >
     This automation blueprint creates a camera snapshot if motion is detected 
     and sends a notification to your phone with the picture.
   domain: automation
   input:
-    motion_sensor:
-      name: Motion or Contact sensor
+    contact_sensor:
+      name: Contact sensor
       description: The sensor wich triggers the snapshot creation
       selector:
           entity:
             domain: binary_sensor
-            device_class: motion, contact
+            device_class: contact
 
     camera:
       name: Camera
@@ -36,13 +36,13 @@ blueprint:
 
     notification_title:
       name: Notification title (Optional)
-      description: 'Default: "Motion detected!"'
-      default: "Motion detected!"
+      description: 'Default: "Contact opened!"'
+      default: "Contact opened!"
 
     notification_message:
       name: Notification message (Optional)
-      description: 'Default: "{{ motion_sensor_name }} detected movement!"'
-      default: "{{ motion_sensor_name }} detected movement!"
+      description: 'Default: "{{ contact_sensor_name }} is open!"'
+      default: "{{ contact_sensor_name }} is open!"
       
     delay:
       name: Delay (Optional)
@@ -57,12 +57,12 @@ blueprint:
 
 trigger:
   platform: state
-  entity_id: !input motion_sensor
-  from: "off"
-  to: "on"
+  entity_id: !input contact_sensor
+  from: "true"
+  to: "false"
 
 variables:
-  motion_sensor: !input motion_sensor
+  motion_sensor: !input contact_sensor
   motion_sensor_name: "{{ states[motion_sensor].name }}"
   camera: !input camera
   notify_device: !input notify_device
