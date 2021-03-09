@@ -58,8 +58,8 @@ blueprint:
 trigger:
   platform: state
   entity_id: !input contact_sensor
-  from: "closed"
-  to: "open"
+  from: "off"
+  to: "on"
 
 variables:
   contact_sensor: !input contact_sensor
