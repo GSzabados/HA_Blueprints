@@ -13,6 +13,21 @@ blueprint:
             domain: binary_sensor
             device_class: door
 
+    is_opened:
+      name: Trigger the snapshot on opening?
+      description: Toggle if your don't want a snapshot when the contact opens
+      selector:
+        boolean:
+      default: true
+
+    is_closed:
+      name: Trigger the snapshot on closing?
+      description: Toggle if your want a snapshot when the contact closes
+      selector:
+        boolean:
+      default: false
+
+
     camera:
       name: Camera
       description: The camera which creates the snapshot
@@ -51,7 +66,7 @@ blueprint:
       selector:
         number:
             min: 0
-            max: 60
+            max: 300
             unit_of_measurement: seconds
             mode: slider
 
@@ -60,6 +75,10 @@ trigger:
   entity_id: !input contact_sensor
   from: "off"
   to: "on"
+  platform: state
+  entity_id: !input contact_sensor
+  from: "on"
+  to: "off"
 
 variables:
   contact_sensor: !input contact_sensor
@@ -67,6 +86,8 @@ variables:
   camera: !input camera
   notify_device: !input notify_device
   is_ios: !input is_ios
+  is_opened: !input is_opened
+  is_closed: !input is_closed
   notification_title: !input notification_title
   notification_message: !input notification_message
   delay: !input delay
@@ -74,19 +95,50 @@ variables:
   snapshot_access_file_path: "{{ snapshot_create_file_path | replace('/config/www','/local') }}"
 
 action:
-  - delay: "{{ delay }}"
+  - choose:
+      - conditions:
+          - condition: template
+            # Trigger on opening
+            value_template: "{{ is_opened == true and state.contact_sensor == "on" }}"
+            
+        sequence:
+          - delay: "{{ delay }}"
 
-  - service: camera.snapshot
-    entity_id: !input camera
-    data:
-      filename: "{{ snapshot_create_file_path }}"
+          - service: camera.snapshot
+            entity_id: !input camera
+            data:
+              filename: "{{ snapshot_create_file_path }}"
 
-  - device_id: !input notify_device
-    domain: mobile_app
-    type: notify
-    title: "{{ notification_title }}"
-    message: "{{ notification_message }}"
-    data: >
-      {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
-      {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
-      {{ ios_data if is_ios else android_data }}
+          - device_id: !input notify_device
+            domain: mobile_app
+            type: notify
+            title: "{{ notification_title }}"
+            message: "{{ notification_message }}"
+            data: >
+              {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
+              {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
+              {{ ios_data if is_ios else android_data }}
+
+      - conditions:
+          - condition: template
+            # Trigger on opening
+            value_template: "{{ is_closed == true and state.contact_sensor == "off" }}"
+            
+        sequence:
+          - delay: "{{ delay }}"
+
+          - service: camera.snapshot
+            entity_id: !input camera
+            data:
+              filename: "{{ snapshot_create_file_path }}"
+
+          - device_id: !input notify_device
+            domain: mobile_app
+            type: notify
+            title: "{{ notification_title }}"
+            message: "{{ notification_message }}"
+            data: >
+              {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
+              {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
+              {{ ios_data if is_ios else android_data }}
+
