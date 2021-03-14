@@ -49,18 +49,39 @@ blueprint:
         boolean:
       default: false
 
-    notification_title:
+    notification_title_opened:
       name: Notification title (Optional)
       description: 'Default: "Contact opened!"'
       default: "Contact opened!"
 
-    notification_message:
+    notification_message_opened:
       name: Notification message (Optional)
       description: 'Default: "{{ contact_sensor_name }} is open!"'
       default: "{{ contact_sensor_name }} is open!"
+    
+    notification_title_closed:
+      name: Notification title (Optional)
+      description: 'Default: "Contact closed!"'
+      default: "Contact closed!"
+
+    notification_message_closed:
+      name: Notification message (Optional)
+      description: 'Default: "{{ contact_sensor_name }} is close!"'
+      default: "{{ contact_sensor_name }} is close!"
       
-    delay:
-      name: Delay (Optional)
+    delay_opened:
+      name: Delay when opened (Optional)
+      description: Wait before creating camera snapshot
+      default: ""
+      selector:
+        number:
+            min: 0
+            max: 300
+            unit_of_measurement: seconds
+            mode: slider
+
+    delay_closed:
+      name: Delay when closed (Optional)
       description: Wait before creating camera snapshot
       default: ""
       selector:
@@ -71,11 +92,11 @@ blueprint:
             mode: slider
 
 trigger:
-  platform: state
+- platform: state
   entity_id: !input contact_sensor
   from: "off"
   to: "on"
-  platform: state
+- platform: state
   entity_id: !input contact_sensor
   from: "on"
   to: "off"
@@ -88,9 +109,12 @@ variables:
   is_ios: !input is_ios
   is_opened: !input is_opened
   is_closed: !input is_closed
-  notification_title: !input notification_title
-  notification_message: !input notification_message
-  delay: !input delay
+  notification_title_opened: !input notification_title_opened
+  notification_title_closed: !input notification_title_closed
+  notification_message_opened: !input notification_message_opened
+  notification_message_closed: !input notification_message_closed
+  delay_opened: !input delay_opened
+  delay_closed: !input delay_closed
   snapshot_create_file_path: "/config/www/tmp/snapshot_{{ states[camera].object_id }}.jpg"
   snapshot_access_file_path: "{{ snapshot_create_file_path | replace('/config/www','/local') }}"
 
@@ -102,7 +126,7 @@ action:
             value_template: "{{ is_opened == True and states[contact_sensor].state == 'on' }}"
             
         sequence:
-          - delay: "{{ delay }}"
+          - delay: "{{ delay_opened }}"
 
           - service: camera.snapshot
             entity_id: !input camera
@@ -112,8 +136,8 @@ action:
           - device_id: !input notify_device
             domain: mobile_app
             type: notify
-            title: "{{ notification_title }}"
-            message: "{{ notification_message }}"
+            title: "{{ notification_title_opened }}"
+            message: "{{ notification_message_opened }}"
             data: >
               {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
               {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
@@ -121,11 +145,11 @@ action:
 
       - conditions:
           - condition: template
-            # Trigger on opening
+            # Trigger on closing
             value_template: "{{ is_closed == True and states[contact_sensor].state == 'off' }}"
             
         sequence:
-          - delay: "{{ delay }}"
+          - delay: "{{ delay_closed }}"
 
           - service: camera.snapshot
             entity_id: !input camera
@@ -135,8 +159,8 @@ action:
           - device_id: !input notify_device
             domain: mobile_app
             type: notify
-            title: "{{ notification_title }}"
-            message: "{{ notification_message }}"
+            title: "{{ notification_title_closed }}"
+            message: "{{ notification_message_closed }}"
             data: >
               {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
               {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
