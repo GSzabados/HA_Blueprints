@@ -99,7 +99,7 @@ action:
       - conditions:
           - condition: template
             # Trigger on opening
-            value_template: "{{ !input is_opened == True and states[contact_sensor].state == "on" }}"
+            value_template: "{{ !input is_opened == True and states[contact_sensor].state == 'on' }}"
             
         sequence:
           - delay: "{{ delay }}"
@@ -122,7 +122,7 @@ action:
       - conditions:
           - condition: template
             # Trigger on opening
-            value_template: "{{ is_closed == true and state.contact_sensor == "off" }}"
+            value_template: "{{ is_closed == true and state.contact_sensor == 'off' }}"
             
         sequence:
           - delay: "{{ delay }}"
