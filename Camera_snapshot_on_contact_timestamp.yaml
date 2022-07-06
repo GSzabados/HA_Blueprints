@@ -156,7 +156,7 @@ action:
               domain: mobile_app
               type: notify
               title: "{{ notification_title_opened }}"
-              message: "{{ notification_message_opened }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') }}!"
+              message: "{{ notification_message_opened }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') | replace('.jpg','') }}!"
               data: >
                 {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                 {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
@@ -168,7 +168,7 @@ action:
                       domain: mobile_app
                       type: notify
                       title: "{{ notification_title_opened }}"
-                      message: "{{ notification_message_opened }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') }}!"
+                      message: "{{ notification_message_opened }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') | replace('.jpg','') }}!"
                       data: >
                         {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                         {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
@@ -192,7 +192,7 @@ action:
               domain: mobile_app
               type: notify
               title: "{{ notification_title_closed }}"
-              message: "{{ notification_message_closed }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') }} !"
+              message: "{{ notification_message_closed }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') | replace('.jpg','')}} !"
               data: >
                 {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                 {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
@@ -204,7 +204,7 @@ action:
                       domain: mobile_app
                       type: notify
                       title: "{{ notification_title_closed }}"
-                      message: "{{ notification_message_closed }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') }}!"
+                      message: "{{ notification_message_closed }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') | replace('.jpg','')}}!"
                       data: >
                         {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                         {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
