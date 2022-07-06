@@ -52,7 +52,7 @@ blueprint:
     notify_device_2:
       name: Second device to notify
       description: Device needs to run the official Home Assistant app to receive notifications
-      default: {}
+      default: ''
       selector:
         device:
           integration: mobile_app
@@ -134,7 +134,7 @@ variables:
   delay_closed: !input delay_closed
   snapshot_create_file_path: "/config/www/tmp/snapshot_{{ states[camera].object_id }}_{{ now().strftime('%Y-%m-%d_%H-%M-%S') }}.jpg"
   snapshot_access_file_path: "{{ snapshot_create_file_path | replace('/config/www','/local') }}"
-  date_time_of_image: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  date_time_of_image: {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
 
 action:
   - choose:
