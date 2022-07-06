@@ -72,7 +72,7 @@ blueprint:
     notification_message_opened:
       name: Notification message (Optional)
       description: 'Default: "{{ contact_sensor_name }} was opened at YYYY-MM-DD HH:MM:SS!" (Timestamp added automatically!)'
-      default: "{{ contact_sensor_name }} was opened at {{ date_time_of_image }}!"
+      default: "{{ contact_sensor_name }} was opened at "
     
     notification_title_closed:
       name: Notification title (Optional)
@@ -82,7 +82,7 @@ blueprint:
     notification_message_closed:
       name: Notification message (Optional)
       description: 'Default: "{{ contact_sensor_name }} was closed at YYYY-MM-DD HH:MM:SS!" (Timestamp added automatically!)'
-      default: "{{ contact_sensor_name }} was closed at {{ date_time_of_image }}!"
+      default: "{{ contact_sensor_name }} was closed at "
       
     delay_opened:
       name: Delay when opened (Optional)
@@ -134,7 +134,7 @@ variables:
   delay_closed: !input delay_closed
   snapshot_create_file_path: "/config/www/tmp/snapshot_{{ states[camera].object_id }}_{{ now().strftime('%Y-%m-%d_%H-%M-%S') }}.jpg"
   snapshot_access_file_path: "{{ snapshot_create_file_path | replace('/config/www','/local') }}"
-  date_time_of_image: "{{ snapshot_create_file_path | replace('/config/www/tmp/snapshot_{{ states[camera].object_id }}_','') | replace('_',' ') | replace('.jpg','') }}"
+  date_time_of_image: ""
 
 action:
   - choose:
@@ -156,7 +156,7 @@ action:
               domain: mobile_app
               type: notify
               title: "{{ notification_title_opened }}"
-              message: "{{ notification_message_opened }}"
+              message: "{{ notification_message_opened }}{{ snapshot_create_file_path.split('_')[2] }}!"
               data: >
                 {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                 {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
@@ -168,7 +168,7 @@ action:
                       domain: mobile_app
                       type: notify
                       title: "{{ notification_title_opened }}"
-                      message: "{{ notification_message_opened }}"
+                      message: "{{ notification_message_opened }}{{ snapshot_create_file_path.split('_')[2] }}!"
                       data: >
                         {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                         {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
@@ -192,7 +192,7 @@ action:
               domain: mobile_app
               type: notify
               title: "{{ notification_title_closed }}"
-              message: "{{ notification_message_closed }}"
+              message: "{{ notification_message_closed }}{{ snapshot_create_file_path.split('_')[2] }}!"
               data: >
                 {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                 {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
@@ -204,7 +204,7 @@ action:
                       domain: mobile_app
                       type: notify
                       title: "{{ notification_title_closed }}"
-                      message: "{{ notification_message_closed }}"
+                      message: "{{ notification_message_closed }}{{ snapshot_create_file_path.split('_')[2] }}!"
                       data: >
                         {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                         {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
