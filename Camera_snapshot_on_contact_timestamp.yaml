@@ -87,7 +87,7 @@ blueprint:
     delay_opened:
       name: Delay when opened (Optional)
       description: Wait before creating camera snapshot
-      default: ""
+      default: 0
       selector:
         number:
             min: 0
@@ -98,7 +98,7 @@ blueprint:
     delay_closed:
       name: Delay when closed (Optional)
       description: Wait before creating camera snapshot
-      default: ""
+      default: 0
       selector:
         number:
             min: 0
