@@ -52,6 +52,7 @@ blueprint:
     notify_device_2:
       name: Second device to notify
       description: Device needs to run the official Home Assistant app to receive notifications
+      default: {}
       selector:
         device:
           integration: mobile_app
@@ -161,7 +162,7 @@ action:
                 {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
                 {{ ios_data if is_ios else android_data }}
             - choose:
-                - conditions: "{{ notify_device_2 }}"
+                - conditions: "{{ not not notify_device_2 }}"
                   sequence:
                     - device_id: !input notify_device_2
                       domain: mobile_app
@@ -197,7 +198,7 @@ action:
                 {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
                 {{ ios_data if is_ios else android_data }}
             - choose:
-                - conditions: "{{ notify_device_2 }}"
+                - conditions: "{{ not not notify_device_2 }}"
                   sequence:
                     - device_id: !input notify_device_2
                       domain: mobile_app
