@@ -1,5 +1,5 @@
 blueprint:
-  name: Send a camera snapshot when contact opens.
+  name: Send a camera snapshot with timestamp when contact opens.
   description: >
     This automation blueprint creates a camera snapshot if motion is detected 
     and sends a notification to your phone with the picture.
