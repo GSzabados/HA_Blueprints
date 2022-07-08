@@ -81,7 +81,7 @@ trigger:
 
 variables:
   doorbel: !input doorbell
-  doorbell_name: "{{ states[doorbell].name }}"
+  doorbell_name: "{{ device_attr([doorbell], "name") }}"
   camera: !input camera
   notify_device: !input notify_device
   notify_device_2: !input notify_device_2
@@ -90,7 +90,7 @@ variables:
   notification_title_pressed: !input notification_title_pressed
   notification_message_pressed: !input notification_message_pressed
   delay_pressed: !input delay_pressed
-  snapshot_create_file_path: "/config/www/tmp/snapshot_{{ states[camera].object_id }}_{{ now().strftime('%Y-%m-%d_%H-%M-%S') }}.jpg"
+  snapshot_create_file_path: "/config/www/tmp/snapshot_{{ states[camera].object_id }}_{{ now().strftim[('%Y-%m-%d_%H-%M-%S') }}.jpg"
   snapshot_access_file_path: "{{ snapshot_create_file_path | replace('/config/www','/local') }}"
 
 mode: parallel
@@ -107,7 +107,7 @@ action:
               domain: mobile_app
               type: notify
               title: "{{ notification_title_pressed }}"
-              message: "{{ notification_message_pressed }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') | replace('.jpg','') }}!"
+              message: "{{ notification_message_pressed }} {{ snapshot_create_file_path.split('_')[3] }} {{ snapshot_create_file_path.split('_')[4] | replace('-',':') | replace('.jpg','') }}!"
               data: >
                 {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                 {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
@@ -119,7 +119,7 @@ action:
                       domain: mobile_app
                       type: notify
                       title: "{{ notification_title_pressed }}"
-                      message: "{{ notification_message_pressed }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') | replace('.jpg','') }}!"
+                      message: "{{ notification_message_pressed }} {{ snapshot_create_file_path.split('_')[3] }} {{ snapshot_create_file_path.split('_')[4] | replace('-',':') | replace('.jpg','') }}!"
                       data: >
                         {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
                         {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
