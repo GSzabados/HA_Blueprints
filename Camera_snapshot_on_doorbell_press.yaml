@@ -60,7 +60,7 @@ blueprint:
       default: "{{ doorbell_name }} was pressed at "
     
     
-    delay_press:
+    delay_pressed:
       name: Delay image when pressed (Optional)
       description: Wait before creating camera snapshot
       default: 0
