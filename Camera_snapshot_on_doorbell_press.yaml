@@ -1,0 +1,126 @@
+blueprint:
+  name: Send a camera snapshot with timestamp when Nest doorbell pressed.
+  description: >
+    This automation blueprint creates a camera snapshot if Nest doorbell pressed 
+    and sends a notification to your phone with the picture.
+  domain: automation
+  input:
+    doorbell:
+      name: Doorbell
+      description: The Doorbell which triggers the automation
+      selector:
+          device:
+            domain: nest
+            
+    camera:
+      name: Camera
+      description: The camera which creates the snapshot
+      selector:
+        entity:
+          domain: camera
+
+    notify_device:
+      name: Device to notify
+      description: Device needs to run the official Home Assistant app to receive notifications
+      selector:
+        device:
+          integration: mobile_app
+
+    is_ios:
+      name: Is it an iOS device?
+      description: Toggle if your selected device runs iOS, default is Android
+      selector:
+        boolean:
+      default: false
+      
+    notify_device_2:
+      name: Second device to notify
+      description: Device needs to run the official Home Assistant app to receive notifications
+      default: ''
+      selector:
+        device:
+          integration: mobile_app
+
+    is_ios_2:
+      name: Is the second device an iOS device?
+      description: Toggle if your selected device runs iOS, default is Android
+      selector:
+        boolean:
+      default: false  
+
+    notification_title_pressed:
+      name: Notification title (Optional)
+      description: 'Default: "Doorbell pressed!"'
+      default: "Doorbell pressed!"
+
+    notification_message_pressed:
+      name: Notification message (Optional)
+      description: 'Default: "{{ doorbell_name }} was pressed at YYYY-MM-DD HH:MM:SS!" (Timestamp added automatically!)'
+      default: "{{ doorbell_name }} was pressed at "
+    
+    
+    delay_press:
+      name: Delay image when pressed (Optional)
+      description: Wait before creating camera snapshot
+      default: 0
+      selector:
+        number:
+            min: 0
+            max: 300
+            unit_of_measurement: seconds
+            mode: slider
+
+
+trigger:
+- platform: device
+  entity_id: !input doorbell
+  type: doorbell_chime
+
+
+variables:
+  doorbel: !input doorbell
+  doorbell_name: "{{ states[doorbell].name }}"
+  camera: !input camera
+  notify_device: !input notify_device
+  notify_device_2: !input notify_device_2
+  is_ios: !input is_ios
+  is_ios_2: !input is_ios_2
+  notification_title_pressed: !input notification_title_pressed
+  notification_message_pressed: !input notification_message_pressed
+  delay_pressed: !input delay_pressed
+  snapshot_create_file_path: "/config/www/tmp/snapshot_{{ states[camera].object_id }}_{{ now().strftime('%Y-%m-%d_%H-%M-%S') }}.jpg"
+  snapshot_access_file_path: "{{ snapshot_create_file_path | replace('/config/www','/local') }}"
+
+action:
+  - sequence:
+          - delay: "{{ delay_pressed }}"
+
+          - service: camera.snapshot
+            entity_id: !input camera
+            data:
+              filename: "{{ snapshot_create_file_path }}"
+              
+          - parallel:
+            - device_id: !input notify_device
+              domain: mobile_app
+              type: notify
+              title: "{{ notification_title_pressed }}"
+              message: "{{ notification_message_pressed }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') | replace('.jpg','') }}!"
+              data: >
+                {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
+                {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
+                {{ ios_data if is_ios else android_data }}
+            - choose:
+                - conditions: "{{ not not notify_device_2 }}"
+                  sequence:
+                    - device_id: !input notify_device_2
+                      domain: mobile_app
+                      type: notify
+                      title: "{{ notification_title_pressed }}"
+                      message: "{{ notification_message_pressed }} {{ snapshot_create_file_path.split('_')[2] }} {{ snapshot_create_file_path.split('_')[3] | replace('-',':') | replace('.jpg','') }}!"
+                      data: >
+                        {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
+                        {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
+                        {{ ios_data if is_ios_2 else android_data }}
+
+
