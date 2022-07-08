@@ -80,7 +80,7 @@ trigger:
 
 
 variables:
-  doorbel: !input doorbell
+  doorbell: !input doorbell
   doorbell_name: "{{ device_attr([doorbell], "name") }}"
   camera: !input camera
   notify_device: !input notify_device
