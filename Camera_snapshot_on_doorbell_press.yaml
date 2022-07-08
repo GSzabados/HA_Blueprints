@@ -90,7 +90,7 @@ variables:
   notification_title_pressed: !input notification_title_pressed
   notification_message_pressed: !input notification_message_pressed
   delay_pressed: !input delay_pressed
-  snapshot_create_file_path: "/config/www/tmp/snapshot_{{ states[camera].object_id }}_{{ now().strftime[('%Y-%m-%d_%H-%M-%S') }}.jpg"
+  snapshot_create_file_path: "/config/www/tmp/snapshot_{{ states[camera].object_id }}_{{ now().strftime('%Y-%m-%d_%H-%M-%S') }}.jpg"
   snapshot_access_file_path: "{{ snapshot_create_file_path | replace('/config/www','/local') }}"
 
 mode: parallel
