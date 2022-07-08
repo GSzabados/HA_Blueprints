@@ -9,8 +9,8 @@ blueprint:
       name: Doorbell
       description: The Doorbell which triggers the automation
       selector:
-          device:
-            domain: nest
+        device:
+          domain: nest
             
     camera:
       name: Camera
