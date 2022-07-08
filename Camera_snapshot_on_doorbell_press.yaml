@@ -74,7 +74,7 @@ blueprint:
 
 trigger:
 - platform: device
-  entity_id: !input doorbell
+  device_id: !input doorbell
   type: doorbell_chime
 
 
