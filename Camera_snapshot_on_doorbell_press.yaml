@@ -94,7 +94,6 @@ variables:
 
 mode: parallel
 action:
-  - sequence:
           - delay: "{{ delay_pressed }}"
 
           - service: camera.snapshot
