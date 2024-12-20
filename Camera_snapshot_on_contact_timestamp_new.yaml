@@ -1,0 +1,213 @@
+blueprint:
+  name: Send a camera snapshot with timestamp when contact opens (NEW).
+  description: >
+    This automation blueprint creates a camera snapshot if motion is detected 
+    and sends a notification to your phone with the picture.
+  domain: automation
+  input:
+    contact_sensor:
+      name: Contact sensor
+      description: The sensor which triggers the snapshot creation
+      selector:
+          entity:
+            domain: binary_sensor
+            device_class: door
+
+    is_opened:
+      name: Trigger the snapshot on opening?
+      description: Toggle if your don't want a snapshot when the contact opens
+      selector:
+        boolean:
+      default: true
+
+    is_closed:
+      name: Trigger the snapshot on closing?
+      description: Toggle if your want a snapshot when the contact closes
+      selector:
+        boolean:
+      default: false
+
+
+    camera:
+      name: Camera
+      description: The camera which creates the snapshot
+      selector:
+        entity:
+          domain: camera
+
+    notify_device:
+      name: Device to notify
+      description: Device needs to run the official Home Assistant app to receive notifications
+      selector:
+        device:
+          integration: mobile_app
+
+    is_ios:
+      name: Is it an iOS device?
+      description: Toggle if your selected device runs iOS, default is Android
+      selector:
+        boolean:
+      default: false
+      
+    notify_device_2:
+      name: Second device to notify
+      description: Device needs to run the official Home Assistant app to receive notifications
+      default: ''
+      selector:
+        device:
+          integration: mobile_app
+
+    is_ios_2:
+      name: Is the second device an iOS device?
+      description: Toggle if your selected device runs iOS, default is Android
+      selector:
+        boolean:
+      default: false  
+
+    notification_title_opened:
+      name: Notification title (Optional)
+      description: 'Default: "Contact opened!"'
+      default: "Contact opened!"
+
+    notification_message_opened:
+      name: Notification message (Optional)
+      description: 'Default: "{{ contact_sensor_name }} was opened at YYYY-MM-DD HH:MM:SS!" (Timestamp added automatically!)'
+      default: "{{ contact_sensor_name }} was opened at "
+    
+    notification_title_closed:
+      name: Notification title (Optional)
+      description: 'Default: "Contact closed!"'
+      default: "Contact closed!"
+
+    notification_message_closed:
+      name: Notification message (Optional)
+      description: 'Default: "{{ contact_sensor_name }} was closed at YYYY-MM-DD HH:MM:SS!" (Timestamp added automatically!)'
+      default: "{{ contact_sensor_name }} was closed at "
+      
+    delay_opened:
+      name: Delay when opened (Optional)
+      description: Wait before creating camera snapshot
+      default: 0
+      selector:
+        number:
+            min: 0
+            max: 300
+            unit_of_measurement: seconds
+            mode: slider
+
+    delay_closed:
+      name: Delay when closed (Optional)
+      description: Wait before creating camera snapshot
+      default: 0
+      selector:
+        number:
+            min: 0
+            max: 300
+            unit_of_measurement: seconds
+            mode: slider
+
+trigger:
+- platform: state
+  entity_id: !input contact_sensor
+  from: "off"
+  to: "on"
+- platform: state
+  entity_id: !input contact_sensor
+  from: "on"
+  to: "off"
+
+variables:
+  contact_sensor: !input contact_sensor
+  contact_sensor_name: "{{ states[contact_sensor].name }}"
+  camera: !input camera
+  notify_device: !input notify_device
+  notify_device_2: !input notify_device_2
+  is_ios: !input is_ios
+  is_ios_2: !input is_ios_2
+  is_opened: !input is_opened
+  is_closed: !input is_closed
+  notification_title_opened: !input notification_title_opened
+  notification_title_closed: !input notification_title_closed
+  notification_message_opened: !input notification_message_opened
+  notification_message_closed: !input notification_message_closed
+  delay_opened: !input delay_opened
+  delay_closed: !input delay_closed
+  snapshot_create_file_path: "/config/www/tmp/snapshot_{{ states[camera].object_id }}_{{ now().strftime('%Y-%m-%d_%H-%M-%S') }}.jpg"
+  snapshot_access_file_path: "{{ snapshot_create_file_path | replace('/config/www','/local') }}"
+  date_time_of_image: ""
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            # Trigger on opening
+            value_template: "{{ is_opened == True and states[contact_sensor].state == 'on' }}"
+            
+        sequence:
+          - delay: "{{ delay_opened }}"
+
+          - service: camera.snapshot
+            entity_id: !input camera
+            data:
+              filename: "{{ snapshot_create_file_path }}"
+              
+          - parallel:
+            - device_id: !input notify_device
+              domain: mobile_app
+              type: notify
+              title: "{{ notification_title_opened }}"
+              message: "{{ notification_message_opened }} {{ snapshot_create_file_path.split('_')[4] }} {{ snapshot_create_file_path.split('_')[5] | replace('-',':') | replace('.jpg','') }}!"
+              data: >
+                {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
+                {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
+                {{ ios_data if is_ios else android_data }}
+            - choose:
+                - conditions: "{{ not not notify_device_2 }}"
+                  sequence:
+                    - device_id: !input notify_device_2
+                      domain: mobile_app
+                      type: notify
+                      title: "{{ notification_title_opened }}"
+                      message: "{{ notification_message_opened }} {{ snapshot_create_file_path.split('_')[4] }} {{ snapshot_create_file_path.split('_')[5] | replace('-',':') | replace('.jpg','') }}!"
+                      data: >
+                        {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
+                        {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
+                        {{ ios_data if is_ios_2 else android_data }}
+
+      - conditions:
+          - condition: template
+            # Trigger on closing
+            value_template: "{{ is_closed == True and states[contact_sensor].state == 'off' }}"
+            
+        sequence:
+          - delay: "{{ delay_closed }}"
+
+          - service: camera.snapshot
+            entity_id: !input camera
+            data:
+              filename: "{{ snapshot_create_file_path }}"
+          
+          - parallel:
+            - device_id: !input notify_device
+              domain: mobile_app
+              type: notify
+              title: "{{ notification_title_closed }}"
+              message: "{{ notification_message_closed }} {{ snapshot_create_file_path.split('_')[4] }} {{ snapshot_create_file_path.split('_')[5] | replace('-',':') | replace('.jpg','')}} !"
+              data: >
+                {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
+                {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
+                {{ ios_data if is_ios else android_data }}
+            - choose:
+                - conditions: "{{ not not notify_device_2 }}"
+                  sequence:
+                    - device_id: !input notify_device_2
+                      domain: mobile_app
+                      type: notify
+                      title: "{{ notification_title_closed }}"
+                      message: "{{ notification_message_closed }} {{ snapshot_create_file_path.split('_')[4] }} {{ snapshot_create_file_path.split('_')[5] | replace('-',':') | replace('.jpg','')}}!"
+                      data: >
+                        {% set android_data = {"image": "%s"} | format(snapshot_access_file_path) %}
+                        {% set ios_data = {"attachment": {"url": "%s", "content_type": "JPEG"}} | format(snapshot_access_file_path) %}
+                        {{ ios_data if is_ios_2 else android_data }}
+
+
